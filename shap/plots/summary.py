@@ -481,6 +481,7 @@ def summary_plot(shap_values, features=None, feature_names=None, max_display=Non
         pl.xlabel(labels['VALUE'], fontsize=13)
     if show:
         pl.show()
+    return pl
 
 def shorten_text(text, length_limit):
     if len(text) > length_limit:
