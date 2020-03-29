@@ -141,7 +141,7 @@ def summary_plot(shap_values, features=None, feature_names=None, max_display=Non
         slow = -v
         shigh = v
 
-        pl.figure(figsize=(1.5 * max_display + 1, 0.8 * max_display + 1))
+        fig=pl.figure(figsize=(1.5 * max_display + 1, 0.8 * max_display + 1))
         pl.subplot(1, max_display, 1)
         proj_shap_values = shap_values[:, sort_inds[0], sort_inds]
         proj_shap_values[:, 1:] *= 2  # because off diag effects are split in half
@@ -481,7 +481,7 @@ def summary_plot(shap_values, features=None, feature_names=None, max_display=Non
         pl.xlabel(labels['VALUE'], fontsize=13)
     if show:
         pl.show()
-    return pl
+    return fig
 
 def shorten_text(text, length_limit):
     if len(text) > length_limit:
