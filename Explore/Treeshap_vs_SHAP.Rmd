@@ -1,0 +1,66 @@
+---
+title: "Treeshap (R) versus SHAP (python)"
+author: "M Loecher"
+date: "13 11 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ranger)
+library(treeshap)
+library(RColorBrewer)
+
+## Add an alpha value to a colour
+add.alpha <- function(col, alpha=1){
+  if(missing(col))
+    stop("Please provide a vector of colours.")
+  apply(sapply(col, col2rgb)/255, 2, 
+                     function(x) 
+                       rgb(x[1], x[2], x[3], alpha=alpha))  
+}
+```
+
+### Data 
+
+```{r}
+titanic = read.csv("https://raw.githubusercontent.com/markusloecher/shap/master/Explore/titanicnoMissingAge.csv")
+xCols = c('Age', 'Pclass','Sex', 'PassengerId')
+data_train = titanic[,c("Survived", xCols)]
+```
+
+
+### Random forest in `ranger`
+
+```{r}
+set.seed(0)
+rf_model = ranger(Survived ~ Age + Pclass + Sex +PassengerId, data = data_train, mtry=2, num.trees = 100, max.depth = 50)
+```
+
+### Treeshap
+
+```{r}
+unified <- ranger.unify(rf_model, data_train)
+sum(!is.na(unified$`Quality/Score`))#just the leaves ?
+sum(!is.na(unified$Split))
+```
+```{r}
+treeshap_values <- treeshap(unified, data_train)
+```
+
+### Compare with Lundberg's SHAP library:
+
+```{r}
+shap_values_titanic = read.csv("https://raw.githubusercontent.com/markusloecher/shap/master/Explore/shap_values_titanic.csv", header=FALSE)
+colnames(shap_values_titanic) = xCols
+```
+
+```{r, fig.width=9,fig.height=9}
+mypalette<- add.alpha(brewer.pal(4,"Dark2"),0.5)
+names(mypalette) = xCols
+par(mfrow=c(2,2))
+for (v in xCols ){
+  plot(shap_values_titanic[,v], treeshap_values[,v], main = v, xlab = "python SHAP", ylab = "treeshap", col = mypalette[v],pch=20);grid()
+}
+```
+

@@ -1,3 +1,39 @@
+
+TestFactorCoding  = function(
+  x=gl(4,1), ##<< x values, alternative: x=1:4
+  DummyCoding = FALSE, ##<< enforce dummy coding ?
+  n=120, # number of rows in data
+  relevance = 0.15, # signal srength (0 for NULL)
+  ntree = 50, #number of trees in forest
+  verbose=0
+){
+  library(randomForest)
+  #test random forests for factor coding:
+  #n=120;ntree = 50; relevance=0.15
+  
+  set.seed(123)
+  
+  x1 = rnorm(n)
+  x3 = base::sample(x,n,replace=TRUE)
+  y= factor(rbinom(n,1,p=0.5+ relevance*c(-2,-1,1,2)[as.numeric(x3)]))#NULL case
+  
+  data = cbind.data.frame(x1,x3,y)
+  
+  if (DummyCoding == TRUE) {
+    xm = model.matrix(y ~ ., data = data)
+    RF <- randomForest(x=xm,y=y, keep.inbag=TRUE,
+                       importance = TRUE, ntree = ntree)
+  } else {
+    RF <- randomForest(y ~ ., data = data, keep.inbag=TRUE,
+                       importance = TRUE, ntree = ntree)
+  }
+  
+  
+  print(RF)
+  Imp = as.data.frame(randomForest::importance(RF))
+  return(Imp)
+}
+
 SimulateData_simple = function(
   n=120, # number of rows in data
   M=100, # number of simulations
@@ -69,13 +105,17 @@ plotImpList = function(parSimsList,
   
 }
 
+if (0){
 
-# Tests:
-NullSim = SimulateData_simple(M=20,nCores=1,ntree=10, relevance = 0.0)
-PowerSim = SimulateData_simple(M=20,nCores=1,ntree=10, relevance = 0.15)
-
-#fname=paste0(baseDir, "figures/NullSim_noBiasCorr",Sys.Date(),".pdf")
-plotImpList(NullSim,fname=NULL, main = "Null Simulation, no BC")
-
-plotImpList(PowerSim,fname=NULL, main = "Power Simulation, no BC")
-
+  # Tests:
+  NullSim = SimulateData_simple(M=20,nCores=1,ntree=10, relevance = 0.0)
+  PowerSim = SimulateData_simple(M=20,nCores=1,ntree=10, relevance = 0.15)
+  
+  #fname=paste0(baseDir, "figures/NullSim_noBiasCorr",Sys.Date(),".pdf")
+  plotImpList(NullSim,fname=NULL, main = "Null Simulation, no BC")
+  
+  plotImpList(PowerSim,fname=NULL, main = "Power Simulation, no BC")
+  
+  TestFactorCoding()
+  TestFactorCoding(x=1:4)
+}
