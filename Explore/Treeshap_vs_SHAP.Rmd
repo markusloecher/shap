@@ -44,7 +44,7 @@ unified <- ranger.unify(rf_model, data_train)
 sum(!is.na(unified$`Quality/Score`))#just the leaves ?
 sum(!is.na(unified$Split))
 ```
-```{r}
+```{r, cache=TRUE}
 treeshap_values <- treeshap(unified, data_train)
 ```
 
@@ -60,7 +60,30 @@ mypalette<- add.alpha(brewer.pal(4,"Dark2"),0.5)
 names(mypalette) = xCols
 par(mfrow=c(2,2))
 for (v in xCols ){
-  plot(shap_values_titanic[,v], treeshap_values[,v], main = v, xlab = "python SHAP", ylab = "treeshap", col = mypalette[v],pch=20);grid()
+  plot(treeshap_values[,v]/100, shap_values_titanic[,v], main = v, ylab = "python SHAP", xlab = "treeshap", col = mypalette[v],pch=20);grid()
+  xy= cbind.data.frame(treeshap=treeshap_values[,v]/100, lundberg=shap_values_titanic[,v])
+  fit = lm(lundberg ~  treeshap,data = xy);SumFit =summary(fit)
+  abline(fit,col=2)
+  cat("Residual Stderr for ",v, ":", round(SumFit$sigma,3),"\n")
+}
+```
+
+### Natural Variations in SHAP values
+
+```{r}
+shap_values_sd = read.csv("https://raw.githubusercontent.com/markusloecher/shap/master/Explore/ShapVals_sd.csv", header=FALSE)
+colnames(shap_values_sd) = xCols
+shap_values_mu = read.csv("https://raw.githubusercontent.com/markusloecher/shap/master/Explore/ShapVals_mu.csv", header=FALSE)
+colnames(shap_values_mu) = xCols
+```
+
+
+```{r, fig.width=9,fig.height=9}
+mypalette<- add.alpha(brewer.pal(4,"Dark2"),0.5)
+names(mypalette) = xCols
+par(mfrow=c(2,2))
+for (v in xCols ){
+  plot(shap_values_mu[,v], shap_values_sd[,v], main = v, ylab = "stdev SHAP", xlab = "mean SHAP", col = mypalette[v],pch=20, ylim = c(0,0.03),xlim = c(-0.25,0.6));grid()
 }
 ```
 
