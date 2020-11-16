@@ -1,0 +1,114 @@
+---
+title: "SHAP vs. treeshap"
+output: html_document
+---
+
+```{r setup r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(reticulate)
+library(treeshap)
+library(data.table)
+library(ggplot2)
+library(ranger)
+```
+
+```{python setup python, include=FALSE}
+import pandas as pd
+import numpy as np
+import shap
+import pickle
+
+from sklearn.model_selection import train_test_split
+from sklearn import preprocessing
+from sklearn.ensemble import RandomForestRegressor
+```
+
+Fit RF in R (ranger).
+```{r rf r}
+titanic = read.csv("https://raw.githubusercontent.com/markusloecher/shap/master/Explore/titanicnoMissingAge.csv")
+xCols = c('Age', 'Pclass','Sex', 'PassengerId')
+data_train = titanic[,c("Survived", xCols)]
+
+rf_model = ranger(Survived ~ Age + Pclass + Sex +PassengerId, data = data_train, 
+                  mtry=4, num.trees = 100, max.depth = 50, min.node.size = 1)
+
+```
+
+Fit RF in Python (sklearn).
+```{python rf python}
+df = pd.read_csv('https://raw.githubusercontent.com/markusloecher/shap/master/Explore/titanicnoMissingAge.csv') # Load the data
+
+Y = df['Survived']
+X =  df[['Age', 'Pclass','Sex', 'PassengerId']]
+X_train = X
+Y_train = Y
+
+rf = RandomForestRegressor(max_depth=50, n_estimators=100, max_features=4)
+rf.fit(X_train, Y_train)
+```
+
+Average number of nodes per tree (R):
+```{r nnodes r}
+mean(sapply(rf_model$forest$split.varIDs, length))
+```
+
+Average number of nodes per tree (python):
+```{python nnodes python}
+total = 0.0
+for i in rf.estimators_:
+  total += i.tree_.node_count
+total / rf.n_estimators
+```
+
+SHAP values in R (treeshap):
+```{r shap r}
+unified <- ranger.unify(rf_model, data_train)
+shap_r <- treeshap(unified, data_train[, -1]) / rf_model$num.trees
+```
+
+SHAP values in python (SHAP):
+```{python shap python}
+explainer = shap.TreeExplainer(rf)
+shap_python = explainer.shap_values(X_train)
+```
+
+Scatter plots:
+```{r plot}
+shap_r_long <- melt(data.table(shap_r),
+                    measure.vars = colnames(shap_r), 
+                    value.name = "shap_r")
+
+shap_python <- py$shap_python
+colnames(shap_python) <- colnames(shap_r)
+shap_python_long <- melt(data.table(shap_python),
+                         measure.vars = colnames(shap_python), 
+                         value.name = "shap_python")
+
+
+#all(shap_r_long$variable == shap_python_long$variable)
+dt <- cbind(shap_r_long, shap_python_long[, .(shap_python)])
+ggplot(dt, aes(x = shap_r, y = shap_python)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1) +
+  facet_wrap(~ variable) +
+  theme_bw() + 
+  xlab("treeshap (R)") + ylab("SHAP (python)")
+```
+
+Bland-Altman plots:
+```{r bland_altman}
+err_mean <- mean(dt$shap_python-dt$shap_r)
+err_sd <- sd(dt$shap_python-dt$shap_r)
+ggplot(dt, aes(x = (shap_r+shap_python)/2, y = shap_python-shap_r)) +
+  geom_point() + 
+  geom_hline(yintercept = err_mean, colour = "#377eb8") + 
+  geom_hline(yintercept = err_mean + 1.96 * err_sd, 
+             colour = "#4daf4a", linetype = "dashed") + 
+  geom_hline(yintercept = err_mean - 1.96 * err_sd, 
+             colour = "#4daf4a", linetype = "dashed") + 
+  facet_wrap(~ variable) +
+  theme_bw() + 
+  xlab("Mean prediction error") + ylab("Difference")
+```
+
+
