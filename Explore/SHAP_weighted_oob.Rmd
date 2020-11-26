@@ -2,13 +2,19 @@
 title: "SHAP values for inbag vs. oob data"
 author: "M Loecher"
 date: "25 11 2020"
-output: html_document
+output: 
+  html_document:
+    toc: true
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(reticulate)
+library(ggplot2)
 #py_install("shap")
+rerun = FALSE #rerun python code to compute SHAP values ?
+#If set to FALSE, the file "shap_inbag_oob.rda" is read in instead
+if (!rerun) load("shap_inbag_oob.rda")
 ```
 
 
@@ -24,13 +30,13 @@ from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
 from sklearn.ensemble import RandomForestRegressor
 
-rerun = True
+rerun = r.rerun
 ```
 
 
 ## Setting up the data 
 
-```{python}
+```{python, eval = rerun}
 df = pd.read_csv('https://raw.githubusercontent.com/markusloecher/shap/master/Explore/titanicnoMissingAge.csv') # Load the data
 #df
 Y = df['Survived']
@@ -39,9 +45,9 @@ X =  df[['Age', 'Pclass','Sex', 'PassengerId']]
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.2)
 ```
 
-## Defining our functions
+## Defining our python functions
 
-```{python}
+```{python, eval = rerun}
 def plotImp(importances,features, main = 'Feature Importances',xlab='Relative Importance'):
     indices = np.argsort(importances)
     #features = X_train.columns
@@ -104,7 +110,7 @@ def generate_unsampled_indices(random_state, n_samples):
 
 ## Fitting a random forest
 
-```{python}
+```{python, eval = rerun}
 rf = RandomForestRegressor(max_depth=50, random_state=0, n_estimators=100,max_features=2)
 rf.fit(X_train, Y_train)  
 print(rf.feature_importances_)
@@ -116,7 +122,7 @@ plotImp(importances,features)
 
 ## Computing shap separately for inbag and oob:
 
-```{python}
+```{python, eval = rerun}
 n_samples, p = X_train.shape
 
 if (rerun):
@@ -137,7 +143,7 @@ if (rerun):
       k+=1
 ```
 
-```{python}
+```{python, eval = rerun}
 shap_oob_avg = np.sum(shap_oob, axis=2) 
 shap_inbag_avg = np.sum(shap_inbag, axis=2)
 
@@ -145,12 +151,26 @@ globalSHAPImp_oob =np.sum(np.abs(shap_oob_avg), axis=0)
 globalSHAPImp_inbag = np.sum(np.abs(shap_inbag_avg), axis=0)
 ```
 
-```{r}
+
+### Copying python objects into R 
+
+```{r, eval = rerun}
 shap_inbag_avg =py$shap_inbag_avg 
 shap_oob_avg =py$shap_oob_avg 
 colnames(shap_inbag_avg) = colnames(shap_oob_avg) = c('Age', 'Pclass','Sex', 'PassengerId')
 
 Y_train = py$Y_train
+X_train = py$X_train
+X_test = py$X_test
+Y_test = py$Y_test
+  
+save(shap_inbag_avg, shap_oob_avg, X_train, X_test, Y_train, Y_test, file = "shap_inbag_oob.rda")
+```
+
+# R code only
+
+```{r}
+
 Y_train2 = Y_train
 Y_train2[Y_train==0] = -1
 shap_inbag_avg_means = colMeans(abs(shap_inbag_avg))
@@ -195,6 +215,8 @@ barplot(shap_oob_wght_means,col="bisque",main = "OOB SHAP")
 
 ## Weighting by Y2 
 
+Whether we code the output as $(0,1)$ or as $(-1, 1)$ makes no difference:
+
 ```{r}
 shap_inbag_wght = shap_inbag_avg
 shap_oob_wght = shap_oob_avg
@@ -216,3 +238,34 @@ boxplot(shap_oob_wght,col=rgb(0,0,1,0.5), outcol=rgb(0,0,1,0.5),pch=20,cex=0.75,
 barplot(shap_oob_wght_means,col="bisque",main = "OOB SHAP")
 
 ```
+
+# Motivation
+
+Why multiply by Y ? 
+
+I believe that ultimately the misleading feature importances are an overfitting problem
+The global importance scores are averages of the **absolute values** of the SHAP values, so they reflect merely variation; regardless whether that variation reflects the truth at all.
+So for e.g. passengerID the model will still produce widely varying SHAP values even on a testset (or oob) -leading to inflated importance - but we would want to "penalize" the wrong direction!
+(Not possible on the training data as the model was fit in order to optimize the agreement with $Y_{train}$).
+
+
+## Inbag versus Outbag
+
+For the inbag data we observe a strong correlation between the sign of the SHAP vales and the sign of $Y_{train}$, whereas this gap disappears almost entirely for those features that suffer from overfitting (such as passenger ID):
+
+```{r, fig.width=10,fig.height=6}
+N = nrow(shap_inbag_avg)
+shap = list()
+
+#sigh,yes, I know, what a clumsy way to create a long data frame!
+for (j in 1:4){
+  shap[[j]] = cbind.data.frame(shap=c(shap_inbag_avg[,j], oob = shap_oob_avg[,j]), bag = rep(c("inbag","oob"), each=N), Y_train2=factor(c(Y_train2,Y_train2)))
+  #boxplot(shap ~ bag*Y_train2, data = shap, col=rgb(0,0,1,0.5), outcol=rgb(0,0,1,0.5),pch=20,cex=0.75, ylab = "SHAP", main = colnames(shap_inbag_avg)[j]);grid()
+}
+shap = do.call("rbind.data.frame", shap)
+shap$feature = rep(colnames(shap_inbag_avg), each =2*N)
+  
+ggplot(shap, aes(x=Y_train2, y=shap, fill=bag)) + geom_boxplot() + facet_wrap(~ feature)
+
+```
+
