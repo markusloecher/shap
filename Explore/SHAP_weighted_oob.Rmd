@@ -200,8 +200,8 @@ for (i in 1:4) {
   shap_oob_wght[,i] = Y_train*shap_oob_avg[,i]
 }
 
-shap_inbag_wght_means = colMeans(shap_inbag_wght)
-shap_oob_wght_means = colMeans(shap_oob_wght)
+shap_inbag_wght_means = colMeans(abs(shap_inbag_wght))
+shap_oob_wght_means = colMeans(abs(shap_oob_wght))
 ```
 
 ```{r, fig.width=10,fig.height=6}
@@ -226,8 +226,8 @@ for (i in 1:4) {
   shap_oob_wght[,i] = Y_train2*shap_oob_avg[,i]
 }
 
-shap_inbag_wght_means = colMeans(shap_inbag_wght)
-shap_oob_wght_means = colMeans(shap_oob_wght)
+shap_inbag_wght_means = colMeans(abs(shap_inbag_wght))
+shap_oob_wght_means = colMeans(abs(shap_oob_wght))
 ```
 
 ```{r, fig.width=10,fig.height=6}
