@@ -1,5 +1,0 @@
-# Degrees of Freedom {#dof}
-
-
-
-I'd like to quote this zinger from the book Numerical Recipes: "...if the difference between n and n−1 ever matters to you, then you are probably up to no good anyway - e.g., trying to substantiate a questionable hypothesis with marginal data."

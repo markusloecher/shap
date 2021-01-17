@@ -1,9 +1,0 @@
-"0","shap_vals, shap_avs, ft_importances, allDFs, n = SimulateData_simple(n=120, M=100)
-shap_avs.tofile(""shap_avs_sim1_power.tsv"",""\t"")
-
-def beeswarm(simulation, n,shap_=shap_vals): # plot the shap plot of the Mth simulation 
-    import shap 
-    shap.summary_plot(shap_[0+n*simulation:n+n*simulation], allDFs[simulation], show=True)
-
-M = 0 
-beeswarm(M, n) # plots the M-th simulation "

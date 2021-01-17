@@ -1,7 +1,0 @@
-"0","rf2 = RandomForestClassifier(max_depth=50, random_state=0, n_estimators=100,max_features=2)
-tmp=rf2.fit(X, Y) 
-
-explainer2 = shap.TreeExplainer(rf2)
-shap_values2 = explainer2.shap_values(X)
-
-shap.summary_plot(shap_values2, X)"
