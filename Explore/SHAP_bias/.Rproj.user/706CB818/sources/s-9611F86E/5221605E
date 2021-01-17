@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1610889349743.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1155979721",
+    "id" : "5221605E",
+    "lastKnownWriteTime" : 1610889616,
+    "last_content_update" : 1610889616494,
+    "path" : "C:/Users/loecherm/Nextcloud2/SHKs/QiWu/RStudio/SHAP_bias/02-Supervised_SHAP.Rmd",
+    "project_path" : "02-Supervised_SHAP.Rmd",
+    "properties" : {
+        "cursorPosition" : "84,83",
+        "scrollLine" : "78"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 8,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

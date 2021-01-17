@@ -1,0 +1,29 @@
+--- 
+title: "Untrustworthy explainable AI for Trees"
+author: "M Loecher and Marvin Wright"
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+documentclass: book
+bibliography: [book.bib, packages.bib]
+biblio-style: apalike
+link-citations: yes
+description: "We point out a bias caused by the inclusion of inbag data in the newly developed SHAP values which is caused by the same split bias observed for MDI type measures."
+---
+
+# Preface
+
+
+
+```{r include=FALSE}
+library(reticulate)
+library(titanic)
+library(ranger)
+
+# automatically create a bib database for R packages
+knitr::write_bib(c(
+  .packages(), 'bookdown', 'knitr', 'rmarkdown' 
+), 'packages.bib')
+
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, cache = TRUE, fig.width = 7, fig.height = 6)
+
+```

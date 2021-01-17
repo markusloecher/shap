@@ -1,0 +1,33 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1610811483654.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "FBB1754B",
+    "lastKnownWriteTime" : 8026363914660965410,
+    "last_content_update" : 1610811483654,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "C44A8473",
+        "caption" : "shap",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=shap&cache_key=C44A8473",
+        "displayedObservations" : 9708,
+        "environment" : "",
+        "expression" : "shap",
+        "object" : "shap",
+        "preview" : 0,
+        "totalObservations" : 9708,
+        "variables" : 4
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 8,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}

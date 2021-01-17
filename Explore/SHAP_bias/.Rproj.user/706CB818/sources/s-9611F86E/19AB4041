@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1610746992964.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "19AB4041",
+    "lastKnownWriteTime" : 1610833439,
+    "last_content_update" : 1610833439319,
+    "path" : "C:/Users/loecherm/Nextcloud2/SHKs/QiWu/RStudio/SHAP_bias/03-HonestTrees.Rmd",
+    "project_path" : "03-HonestTrees.Rmd",
+    "properties" : {
+        "cursorPosition" : "36,33",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
